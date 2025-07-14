@@ -226,15 +226,12 @@ generateBtn.addEventListener("click", async () => {
   const userPrompt = `Here are the products I have selected:\n${productList}\n\nPlease create a step-by-step skincare or beauty routine using ONLY these products. Do NOT mention or suggest any products that are not in this list, even if they were selected before. ONLY return the numbered steps to the routine, with no introduction or summary. Explain the purpose of each step in a friendly, easy-to-understand way. Your answer MUST be under 400 words.`;
   // Do NOT add the initial prompt to chat history as a user message
   // Instead, send a new message array with system + userPrompt only
-  const apiKey = OPENAI_API_KEY;
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch(worksUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -242,7 +239,6 @@ generateBtn.addEventListener("click", async () => {
         },
         { role: "user", content: userPrompt },
       ],
-      max_tokens: 400,
     }),
   });
   const data = await response.json();
@@ -268,17 +264,13 @@ chatForm.addEventListener("submit", async (e) => {
   renderChat();
   chatWindow.innerHTML += '<div style="color:#888;">Thinking...</div>';
   // Call OpenAI's API with full chat history
-  const apiKey = OPENAI_API_KEY;
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  const response = await fetch(worksUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o",
       messages: chatHistory,
-      max_tokens: 200,
     }),
   });
   const data = await response.json();
