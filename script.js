@@ -1,3 +1,6 @@
+// Cloudflare Worker URL for OpenAI API proxy
+const worksUrl = "https://loreal9project.mcazeau4603.workers.dev/";
+
 /* Get references to DOM elements */
 const categoryFilter = document.getElementById("categoryFilter");
 const productsContainer = document.getElementById("productsContainer");
@@ -21,28 +24,67 @@ async function loadProducts() {
 // Array to keep track of selected products
 let selectedProducts = [];
 
+// Load selected products from localStorage if available
+if (localStorage.getItem("selectedProducts")) {
+  try {
+    selectedProducts = JSON.parse(localStorage.getItem("selectedProducts"));
+  } catch (e) {
+    selectedProducts = [];
+  }
+}
+
 // Function to update the selected products list in the UI
 function updateSelectedProductsList() {
   const selectedList = document.getElementById("selectedProductsList");
+  // Save to localStorage
+  localStorage.setItem("selectedProducts", JSON.stringify(selectedProducts));
   // If no products selected, show a message
   if (selectedProducts.length === 0) {
     selectedList.innerHTML = `<div style="color:#888;">No products selected.</div>`;
+    // Remove clear button if present
+    const clearBtn = document.getElementById("clearSelectedBtn");
+    if (clearBtn) clearBtn.remove();
     return;
   }
-  // Show each selected product as a small card
+  // Show each selected product as a small card with a remove button
   selectedList.innerHTML = selectedProducts
     .map(
-      (product) => `
-        <div class="product-card" style="flex:0 1 180px; border:2px solid #007bff; background:#f5faff;">
+      (product, idx) => `
+        <div class="product-card" style="flex:0 1 180px; border:2px solid #007bff; background:#f5faff; position:relative;">
           <img src="${product.image}" alt="${product.name}" style="width:50px; height:50px;">
           <div class="product-info">
             <h3 style="font-size:14px;">${product.name}</h3>
             <p style="font-size:12px;">${product.brand}</p>
           </div>
+          <button class="remove-selected-btn" data-idx="${idx}" style="position:absolute;top:4px;right:4px;background:#fff;border:1px solid #ccc;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:18px;">&times;</button>
         </div>
       `
     )
     .join("");
+  // Add clear all button if not present
+  if (!document.getElementById("clearSelectedBtn")) {
+    const clearBtn = document.createElement("button");
+    clearBtn.id = "clearSelectedBtn";
+    clearBtn.textContent = "Clear All";
+    clearBtn.style =
+      "margin-top:10px;padding:6px 16px;font-size:14px;background:#eee;border:1px solid #aaa;border-radius:6px;cursor:pointer;";
+    clearBtn.onclick = function () {
+      selectedProducts = [];
+      updateSelectedProductsList();
+      displayProducts(window.lastDisplayedProducts || []);
+    };
+    selectedList.parentElement.appendChild(clearBtn);
+  }
+  // Add event listeners to remove buttons
+  document.querySelectorAll(".remove-selected-btn").forEach((btn) => {
+    btn.onclick = function (e) {
+      e.stopPropagation();
+      const idx = parseInt(btn.getAttribute("data-idx"));
+      selectedProducts.splice(idx, 1);
+      updateSelectedProductsList();
+      displayProducts(window.lastDisplayedProducts || []);
+    };
+  });
 }
 
 // Create HTML for displaying product cards and add click event listeners
@@ -72,6 +114,8 @@ function showProductModal(product) {
 
 // Create HTML for displaying product cards and add click event listeners
 function displayProducts(products) {
+  // Save last displayed products for removal/clear logic
+  window.lastDisplayedProducts = products;
   productsContainer.innerHTML = products
     .map((product) => {
       // Check if this product is selected
@@ -109,8 +153,8 @@ function displayProducts(products) {
         } else {
           selectedProducts.splice(index, 1);
         }
-        displayProducts(products);
         updateSelectedProductsList();
+        displayProducts(products);
       });
     });
   });
@@ -175,13 +219,13 @@ generateBtn.addEventListener("click", async () => {
     return;
   }
   chatWindow.innerHTML = "Generating your personalized routine...";
+  // Always use the current selectedProducts array to build the product list
   const productList = selectedProducts
     .map((p, i) => `${i + 1}. ${p.name} (${p.brand}) - ${p.description}`)
     .join("\n");
-  const userPrompt = `Here are the products I have selected:\n${productList}\n\nPlease create a step-by-step skincare or beauty routine using only these products. Explain the order and purpose of each step in a friendly, easy-to-understand way. Keep it short and concise, ideally under 300 words.`;
-  // Add user message to chat history
-  chatHistory.push({ role: "user", content: userPrompt });
-  // Call OpenAI's API using fetch
+  const userPrompt = `Here are the products I have selected:\n${productList}\n\nPlease create a step-by-step skincare or beauty routine using ONLY these products. Do NOT mention or suggest any products that are not in this list, even if they were selected before. ONLY return the numbered steps to the routine, with no introduction or summary. Explain the purpose of each step in a friendly, easy-to-understand way. Your answer MUST be under 400 words.`;
+  // Do NOT add the initial prompt to chat history as a user message
+  // Instead, send a new message array with system + userPrompt only
   const apiKey = OPENAI_API_KEY;
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
@@ -191,8 +235,14 @@ generateBtn.addEventListener("click", async () => {
     },
     body: JSON.stringify({
       model: "gpt-4o",
-      messages: chatHistory,
-      max_tokens: 300,
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant for L'Oréal product advice.",
+        },
+        { role: "user", content: userPrompt },
+      ],
+      max_tokens: 400,
     }),
   });
   const data = await response.json();
@@ -203,7 +253,7 @@ generateBtn.addEventListener("click", async () => {
     data.choices[0].message.content
       ? data.choices[0].message.content
       : "Sorry, I couldn't generate a routine. Please try again.";
-  // Add assistant reply to chat history
+  // Add only the assistant reply to chat history
   chatHistory.push({ role: "assistant", content: reply });
   renderChat();
 });
