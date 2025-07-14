@@ -52,7 +52,6 @@
   padding: 0;
 }
 
-
 /* —— body + fonts —— */
 body {
   font-family: "Montserrat", Arial, Helvetica, sans-serif;
@@ -60,14 +59,13 @@ body {
   display: flex;
   justify-content: center;
   /* Red background with thick horizontal yellow stripes */
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      #ff003b 0px,
-      #ff003b 40px,
-      #e3a535 40px,
-      #e3a535 80px
-    );
+  background: repeating-linear-gradient(
+    to bottom,
+    #ff003b 0px,
+    #ff003b 40px,
+    #e3a535 40px,
+    #e3a535 80px
+  );
 }
 
 .page-wrapper {
