@@ -1,3 +1,50 @@
+/* Modal styles for product details */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-window {
+  background: #fff;
+  border-radius: 10px;
+  max-width: 350px;
+  width: 90vw;
+  padding: 32px 24px 24px 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  position: relative;
+  animation: modalIn 0.2s;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+}
+@keyframes modalIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+.product-card.selected {
+  border: 2px solid #007bff !important;
+  background: #f5faff;
+}
 /* —— basic reset —— */
 * {
   box-sizing: border-box;
