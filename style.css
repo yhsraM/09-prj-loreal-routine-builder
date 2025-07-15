@@ -63,8 +63,8 @@ body {
     to bottom,
     #ff003b 0px,
     #ff003b 40px,
-    #e3a535 40px,
-    #e3a535 80px
+    #000000 40px,
+    #000000 80px
   );
 }
 
@@ -119,6 +119,7 @@ body {
   border: 2px solid #000;
   border-radius: 8px;
   padding: 26px;
+  background: #e3a535;
 }
 
 .chatbox h2 {
@@ -274,6 +275,7 @@ body {
   padding: 20px;
   border: 2px solid #000;
   border-radius: 8px;
+  background: #e3a535;
 }
 
 .selected-products h2 {
