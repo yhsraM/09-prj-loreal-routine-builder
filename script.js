@@ -50,11 +50,11 @@ function updateSelectedProductsList() {
   selectedList.innerHTML = selectedProducts
     .map(
       (product, idx) => `
-        <div class="product-card" style="flex:0 1 180px; border:2px solid #007bff; background:#f5faff; position:relative;">
+        <div class="product-card" style="flex:0 1 180px; border:2px solid #007bff; background:#ff003b; position:relative;">
           <img src="${product.image}" alt="${product.name}" style="width:50px; height:50px;">
           <div class="product-info">
-            <h3 style="font-size:14px;">${product.name}</h3>
-            <p style="font-size:12px;">${product.brand}</p>
+            <h3 style="font-size:14px; color:#fff;">${product.name}</h3>
+            <p style="font-size:12px; color:#fff;">${product.brand}</p>
           </div>
           <button class="remove-selected-btn" data-idx="${idx}" style="position:absolute;top:4px;right:4px;background:#fff;border:1px solid #ccc;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:18px;">&times;</button>
         </div>
@@ -223,9 +223,8 @@ generateBtn.addEventListener("click", async () => {
   const productList = selectedProducts
     .map((p, i) => `${i + 1}. ${p.name} (${p.brand}) - ${p.description}`)
     .join("\n");
-  const userPrompt = `Here are the products I have selected:\n${productList}\n\nPlease create a step-by-step skincare or beauty routine using ONLY these products. Do NOT mention or suggest any products that are not in this list, even if they were selected before. ONLY return the numbered steps to the routine, with no introduction or summary. Explain the purpose of each step in a friendly, easy-to-understand way. Your answer MUST be under 400 words.`;
-  // Do NOT add the initial prompt to chat history as a user message
-  // Instead, send a new message array with system + userPrompt only
+  const userPrompt = `Here are the products I have selected:\n${productList}\n\nPlease create a step-by-step skincare or beauty routine using ONLY these products. Do NOT mention or suggest any products that are not in this list, even if they were selected before. ONLY return the numbered steps to the routine, with no introduction or summary. Explain the purpose of each step in a friendly, easy-to-understand way.`;
+  // Add a system message to strictly enforce the word count
   const response = await fetch(worksUrl, {
     method: "POST",
     headers: {
@@ -235,9 +234,10 @@ generateBtn.addEventListener("click", async () => {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant for L'Oréal product advice.",
+          content:
+            "You are a helpful assistant for L'Oréal product advice. Your response MUST NOT exceed 450 words. If the user prompt requests a word limit, you must strictly follow it and never go over.",
         },
-        { role: "user", content: userPrompt },
+        { role: "user", content: userPrompt + " 450 words ONLY." },
       ],
     }),
   });
